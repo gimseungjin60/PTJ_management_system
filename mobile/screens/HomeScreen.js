@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, Button } from "react-native";
 import { socket } from "../socket";
 import axios from "axios";
 
-const SERVER_URL = "http://172.20.10.5:5000";  // ★ PC의 실제 IP로 바꾸기!!
+const SERVER_URL = "http://10.74.242.127:5000";  // ★ PC의 실제 IP로 바꾸기!!
 
 export default function HomeScreen() {
   const handleCheckIn = async () => {
