@@ -23,7 +23,7 @@ const io = new Server(server, {
 app.use(cors()); // CORS 활성화
 app.use(express.json()); // 클라이언트가 보낸 JSON 데이터를 처리
 // Socket.IO 연결 이벤트 (실시간 알림 처리의 핵심) 아래에 추가
-app.use('socketio', 'io'); // Socket.IO 객체를 Express 앱에 저장
+app.set('socketio', 'io'); // Socket.IO 객체를 Express 앱에 저장
 app.set('connectedClients', {}); // 연결된 클라이언트 ID 저장소 (추가 구현 필요)
 
 
