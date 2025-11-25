@@ -7,6 +7,7 @@ const cors = require('cors'); // CORS 미들웨어 추가
 const authRouter = require('./routes/auth');
 const attendanceRouter = require('./routes/attendance');
 const noticesRouter = require('./routes/notices');
+const managerRouter = require('./routes/manager'); 
 
 const app = express();
 const server = http.createServer(app);
@@ -23,7 +24,7 @@ const io = new Server(server, {
 app.use(cors()); // CORS 활성화
 app.use(express.json()); // 클라이언트가 보낸 JSON 데이터를 처리
 // Socket.IO 연결 이벤트 (실시간 알림 처리의 핵심) 아래에 추가
-app.use('socketio', 'io'); // Socket.IO 객체를 Express 앱에 저장
+app.set('socketio', io); // Socket.IO 객체를 Express 앱에 저장
 app.set('connectedClients', {}); // 연결된 클라이언트 ID 저장소 (추가 구현 필요)
 
 
@@ -31,6 +32,7 @@ app.set('connectedClients', {}); // 연결된 클라이언트 ID 저장소 (추�
 app.use('/api/auth', authRouter);
 app.use('/api/attendance', attendanceRouter);
 app.use('/api/notices', noticesRouter);
+app.use('/api/manager', managerRouter);
 
 // 기본 라우트 (서버 작동 확인용)
 app.get('/', (req, res) => {

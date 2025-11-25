@@ -1,15 +1,41 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Alert } from 'react-native'; // Alert 추가
 import { useNavigation } from "@react-navigation/native";
-import { ChevronLeft, BarChart3, Users, Clock, Settings } from 'lucide-react-native';
+import { ChevronLeft, BarChart3, Users, Clock, Settings, AlertCircle } from 'lucide-react-native';
 
 export default function ManagerHomeScreen() {
   const navigation = useNavigation();
 
+  // 로그아웃 핸들러 함수
+  const handleLogout = () => {
+    Alert.alert(
+      "로그아웃", // 제목
+      "정말 로그아웃 하시겠습니까?", // 내용
+      [
+        {
+          text: "취소",
+          style: "cancel"
+        },
+        { 
+          text: "확인", 
+          onPress: () => {
+            // 확인 누르면 첫 화면(RoleSelect)으로 이동하면서 스택 초기화
+            // (로그인 화면이 있다면 Login으로 이동)
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Login' }], 
+            });
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
+        {/* 👇 뒤로 가기 버튼 누르면 handleLogout 실행 */}
+        <TouchableOpacity onPress={handleLogout} style={styles.iconButton}>
           <ChevronLeft color="#333" size={24} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>사장님 홈</Text>
@@ -18,6 +44,7 @@ export default function ManagerHomeScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* ... (나머지 코드는 기존과 동일) ... */}
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.welcomeSection}>
           <Text style={styles.welcomeSubText}>안녕하세요,</Text>
@@ -39,7 +66,7 @@ export default function ManagerHomeScreen() {
             <Text style={styles.cardSubtitleWhite}>직원 근무 상태 확인</Text>
           </TouchableOpacity>
 
-          {/* 직원 관리 (임시 화면 연결) */}
+          {/* 직원 관리 */}
           <TouchableOpacity
             activeOpacity={0.9}
             onPress={() => navigation.navigate('EmployeeList')} 
@@ -51,6 +78,20 @@ export default function ManagerHomeScreen() {
             </View>
             <Text style={styles.cardTitleBlack}>직원 관리</Text>
             <Text style={styles.cardSubtitleGray}>직원 정보 및 상태 관리</Text>
+          </TouchableOpacity>
+
+          {/* 공지사항 카드 */}
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => navigation.navigate('NoticeList')}
+            style={[styles.actionCard, styles.cardWhite]}
+          >
+            <View style={styles.cardHeader}>
+              <View style={styles.iconCircleGray}><AlertCircle color="#F39C12" size={24} /></View>
+              <Text style={styles.emojiIcon}>📢</Text>
+            </View>
+            <Text style={styles.cardTitleBlack}>공지사항 관리</Text>
+            <Text style={styles.cardSubtitleGray}>공지 작성 및 조회</Text>
           </TouchableOpacity>
 
           {/* 출퇴근 기록 */}

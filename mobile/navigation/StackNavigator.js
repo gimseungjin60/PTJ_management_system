@@ -10,6 +10,10 @@ import ManagerDashboardScreen from "../screens/ManagerDashboardScreen";
 import AttendanceHistoryScreen from "../screens/AttendanceHistoryScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import PlaceholderScreen from "../screens/PlaceholderScreen";
+import EmployeeListScreen from "../screens/EmployeeListScreen"; 
+import NoticeListScreen from "../screens/NoticeListScreen"; 
+import NoticeWriteScreen from "../screens/NoticeWriteScreen";
+import LoginScreen from "../screens/LoginScreen";
 
 // ⚠️ 여기서 NavigationContainer import는 지웁니다.
 // import { NavigationContainer } from "@react-navigation/native"; 
@@ -23,7 +27,8 @@ export default function StackNavigator() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       
       {/* 1. 시작 화면 */}
-      <Stack.Screen name="RoleSelect" component={RoleSelectScreen} />
+      {/*<Stack.Screen name="RoleSelect" component={RoleSelectScreen} />*/}
+      <Stack.Screen name="Login" component={LoginScreen} />
 
       {/* 2. 알바생 관련 */}
       <Stack.Screen name="WorkerHome" component={WorkerHomeScreen} />
@@ -38,8 +43,21 @@ export default function StackNavigator() {
       <Stack.Screen name="Settings" component={SettingsScreen} />
 
       {/* 5. 임시 화면 */}
-      <Stack.Screen name="EmployeeList" component={PlaceholderScreen} initialParams={{ title: '직원 관리' }} />
-      <Stack.Screen name="RealtimeLog" component={PlaceholderScreen} initialParams={{ title: '실시간 로그' }} />
+      {/*<Stack.Screen name="EmployeeList" component={PlaceholderScreen} initialParams={{ title: '직원 관리' }} />*/}
+      
+      {/* 5. 임시 화면 (중복된 EmployeeList 제거함) */}
+      <Stack.Screen 
+        name="RealtimeLog" 
+        component={PlaceholderScreen} 
+        initialParams={{ title: '실시간 로그' }} 
+      />
+
+      {/* 6. 직원 관리 (실제 구현된 화면) */}
+      <Stack.Screen name="EmployeeList" component={EmployeeListScreen} />
+
+      {/* 👇 공지사항 화면 등록 */}
+      <Stack.Screen name="NoticeList" component={NoticeListScreen} />
+      <Stack.Screen name="NoticeWrite" component={NoticeWriteScreen} />
 
     </Stack.Navigator>
     // ⚠️ </NavigationContainer> 태그 삭제!

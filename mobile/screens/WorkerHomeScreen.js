@@ -1,15 +1,40 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Platform, Alert } from 'react-native';
 import { useNavigation } from "@react-navigation/native";
-import { ChevronLeft, Clock, Calendar, Settings } from 'lucide-react-native';
+import { ChevronLeft, Clock, Calendar, Settings, Bell } from 'lucide-react-native';
 
 export default function WorkerHomeScreen() {
   const navigation = useNavigation();
 
+  // 로그아웃 핸들러 함수
+  const handleLogout = () => {
+    Alert.alert(
+      "로그아웃", // 제목
+      "정말 로그아웃 하시겠습니까?", // 내용
+      [
+        {
+          text: "취소",
+          style: "cancel"
+        },
+        { 
+          text: "확인", 
+          onPress: () => {
+            // 확인 누르면 첫 화면(Login)으로 이동하면서 스택 초기화
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Login' }], 
+            });
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
+        {/* 뒤로가기 버튼에 handleLogout 연결 */}
+        <TouchableOpacity onPress={handleLogout} style={styles.iconButton}>
           <ChevronLeft color="#333" size={24} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>홈 화면</Text>
@@ -39,6 +64,21 @@ export default function WorkerHomeScreen() {
             </View>
             <Text style={styles.cardTitleWhite}>출퇴근 하기</Text>
             <Text style={styles.cardSubtitleWhite}>출근 및 퇴근 체크</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => navigation.navigate('NoticeList')} // 👈 NoticeList로 이동
+            style={[styles.actionCard, styles.cardWhite]}
+          >
+            <View style={styles.cardHeader}>
+              <View style={styles.iconCircleGray}>
+                <Bell color="#F39C12" size={24} />
+              </View>
+              <Text style={styles.emojiIcon}>📢</Text>
+            </View>
+            <Text style={styles.cardTitleBlack}>공지사항 확인</Text>
+            <Text style={styles.cardSubtitleGray}>사장님이 올린 공지 보기</Text>
           </TouchableOpacity>
           
           {/* ... (다른 카드들 추가 가능) ... */}
