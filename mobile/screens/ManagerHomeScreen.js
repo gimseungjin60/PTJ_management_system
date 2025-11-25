@@ -1,0 +1,96 @@
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Platform } from 'react-native';
+import { useNavigation } from "@react-navigation/native";
+import { ChevronLeft, BarChart3, Users, Clock, Settings } from 'lucide-react-native';
+
+export default function ManagerHomeScreen() {
+  const navigation = useNavigation();
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
+          <ChevronLeft color="#333" size={24} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>사장님 홈</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.iconButton}>
+          <Settings color="#333" size={24} />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.welcomeSection}>
+          <Text style={styles.welcomeSubText}>안녕하세요,</Text>
+          <Text style={styles.welcomeText}>사장님 👑</Text>
+        </View>
+
+        <View style={styles.cardContainer}>
+          {/* 실시간 출근 현황 */}
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => navigation.navigate('ManagerDashboard')}
+            style={[styles.actionCard, styles.cardGreen]}
+          >
+            <View style={styles.cardHeader}>
+              <View style={styles.iconCircleTransparent}><BarChart3 color="white" size={24} /></View>
+              <Text style={styles.emojiIcon}>📊</Text>
+            </View>
+            <Text style={styles.cardTitleWhite}>실시간 출근 현황</Text>
+            <Text style={styles.cardSubtitleWhite}>직원 근무 상태 확인</Text>
+          </TouchableOpacity>
+
+          {/* 직원 관리 (임시 화면 연결) */}
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => navigation.navigate('EmployeeList')} 
+            style={[styles.actionCard, styles.cardWhite]}
+          >
+            <View style={styles.cardHeader}>
+              <View style={styles.iconCircleGray}><Users color="#2ECC71" size={24} /></View>
+              <Text style={styles.emojiIcon}>👥</Text>
+            </View>
+            <Text style={styles.cardTitleBlack}>직원 관리</Text>
+            <Text style={styles.cardSubtitleGray}>직원 정보 및 상태 관리</Text>
+          </TouchableOpacity>
+
+          {/* 출퇴근 기록 */}
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => navigation.navigate('AttendanceHistory')}
+            style={[styles.actionCard, styles.cardWhite]}
+          >
+            <View style={styles.cardHeader}>
+              <View style={styles.iconCircleGray}><Clock color="#2ECC71" size={24} /></View>
+              <Text style={styles.emojiIcon}>📋</Text>
+            </View>
+            <Text style={styles.cardTitleBlack}>출퇴근 기록 전체보기</Text>
+            <Text style={styles.cardSubtitleGray}>전체 근무 이력 조회</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#F7F7F7' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', padding: 24, backgroundColor: 'white' },
+  headerTitle: { fontSize: 18, fontWeight: 'bold' },
+  iconButton: { padding: 4 },
+  scrollContent: { padding: 24 },
+  welcomeSection: { marginBottom: 32 },
+  welcomeText: { fontSize: 24, fontWeight: 'bold', color: '#333' },
+  welcomeSubText: { color: '#AAAAAA', fontSize: 16 },
+  cardContainer: { gap: 16 },
+  actionCard: { width: '100%', borderRadius: 18, padding: 24, elevation: 4 },
+  cardGreen: { backgroundColor: '#1E8449' },
+  cardWhite: { backgroundColor: 'white' },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
+  iconCircleTransparent: { width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
+  iconCircleGray: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#F0F0F0', alignItems: 'center', justifyContent: 'center' },
+  emojiIcon: { fontSize: 30 },
+  cardTitleWhite: { color: 'white', fontSize: 20, fontWeight: '700' },
+  cardSubtitleWhite: { color: 'rgba(255,255,255,0.8)', fontSize: 14 },
+  cardTitleBlack: { color: '#333', fontSize: 20, fontWeight: '700' },
+  cardSubtitleGray: { color: '#AAAAAA', fontSize: 14 },
+});
