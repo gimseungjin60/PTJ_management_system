@@ -1,40 +1,60 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db/connection');
+const jwt = require('jsonwebtoken');
 
-// 💡 POST /api/v1/auth/login API 구현 예정
+// ! JWT 비밀 키 (실무에서는 .env 사용)
+const JWT_SECRET = 'YOUR_SUPER_SECRET_KEY'; 
+
+// [POST] /api/auth/login
 router.post('/login', async (req, res) => {
-    console.log("--- 로그인 요청 수신 ---");
-    // TODO: 여기에 DB에서 사용자 정보를 조회하는 로직을 넣습니다.
-    const { user_id, password } = req.body;
+    console.log("--- 로그인 요청 도착 ---");
+    console.log("BODY:", req.body); // 👈 이 로그를 추가해서 확인해보세요!
+    const { userId, password } = req.body; // 클라이언트는 userId로 보냄
+
+    console.log(`--- 로그인 요청 수신: ${userId} ---`);
+
+    if (!userId || !password) {
+        return res.status(400).json({ message: '아이디와 비밀번호를 입력해주세요.' });
+    }
     
     try {
-        // 1. 사용자 조회 (username 기준)
-        const sql = 'SELECT id, user_id, password, name, role, hourly_wage FROM Users WHERE user_id = ?';
-        const users = await db.executeQuery(sql, [user_id]);
-        console.log("사용자 조회 성공:", users.length > 0);
+        // 1. 사용자 조회 (user_id 컬럼 기준)
+        const sql = 'SELECT id, user_id, name, role, hourly_wage, password FROM Users WHERE user_id = ?';
+        const users = await db.executeQuery(sql, [userId]);
+        
         if (users.length === 0) {
-            // 사용자가 없는 경우
-            return res.status(401).json({ ok: false, error: '아이디를 찾을 수 없습니다.' });
-            }
+            return res.status(401).json({ message: '아이디를 찾을 수 없습니다.' });
+        }
+        
         const user = users[0];
-        // 2. 비밀번호 비교 (현재는 평문 비교)
+        
+        // 2. 비밀번호 비교
         if (user.password !== password) {
-            return res.status(401).json({ ok: false, error: '비밀번호가 일치하지 않습니다.' });
-            }
-        // 3. 로그인 성공 및 응답
+            return res.status(401).json({ message: '비밀번호가 일치하지 않습니다.' });
+        }
+        
+        // 3. 토큰 생성
+        const payload = { id: user.id, role: user.role };
+        const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
+        
+        // 4. 성공 응답 (user.id가 핵심!)
+        console.log(`✅ 로그인 성공: ${user.name} (${user.id})`);
         return res.status(200).json({
-            ok: true,
-            token: 'dummy-jwt-token', // TODO: 실제 JWT 토큰으로 교체 필요
+            message: '로그인 성공',
+            token: token,
             user: {
-                user_id: user.id,
+                id: user.id,         // ★ 이 숫자 ID를 출퇴근에 써야 함
+                userId: user.user_id,
                 name: user.name,
-                role: user.role
-                }
+                role: user.role,
+                hourlyWage: user.hourly_wage 
+            }
         });
+        
     } catch (error) {
-        console.error("로그인 중 서버 오류:", error.message);
-        return res.status(500).json({ ok: false, error: '서버 오류 발생' });
+        console.error("로그인 오류:", error);
+        return res.status(500).json({ message: '서버 오류 발생' });
     }
 });
 

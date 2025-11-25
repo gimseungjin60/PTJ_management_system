@@ -11,9 +11,8 @@ import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 // 아이콘 라이브러리 (없으면 npm install lucide-react-native)
 import { ChevronLeft, Activity, TrendingUp, AlertCircle, RefreshCw } from 'lucide-react-native';
+import { SERVER_URL } from '../config'; // config.js에서 서버 주소 가져오기
 
-// ★ [중요] 본인 PC IP 주소로 꼭 확인해주세요!
-const SERVER_URL = "http://10.74.242.127:5000";
 
 export default function ManagerDashboardScreen() {
   const navigation = useNavigation();

@@ -11,20 +11,16 @@ import {
 } from 'react-native';
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
-// 아이콘 라이브러리 (없으면 에러나니 npm install lucide-react-native 설치 필수)
 import { ChevronLeft, Clock, LogIn, LogOut } from 'lucide-react-native';
-
-const SERVER_URL = "http://10.74.242.127:5000";
+import AsyncStorage from '@react-native-async-storage/async-storage'; // AsyncStorage 추가
+import { SERVER_URL } from '../config';
 
 export default function WorkerScreen() {
   const navigation = useNavigation();
   
-  // 시계 상태
   const [currentTime, setCurrentTime] = useState(new Date());
-  // 화면 표시용 상태 (서버 응답 후 업데이트 됨)
   const [lastAction, setLastAction] = useState({ type: null, time: null });
 
-  // 1초마다 시간 갱신
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -38,13 +34,21 @@ export default function WorkerScreen() {
     });
   };
 
-  // --- [기존 로직 통합] 출근 ---
+  // 출근
   const handleCheckIn = async () => {
     try {
-      // 1. 서버로 데이터 전송
-      await axios.post(`${SERVER_URL}/api/attendance/check_in`, { userId: 1 });
+      // AsyncStorage에서 userId 가져오기
+      const userId = await AsyncStorage.getItem('userId');
       
-      // 2. 성공 시 UI 업데이트 및 알림
+      if (!userId) {
+        Alert.alert("오류", "로그인 정보가 없습니다. 다시 로그인해주세요.");
+        return;
+      }
+
+      await axios.post(`${SERVER_URL}/api/attendance/check_in`, { 
+        userId: userId // 저장된 userId 사용
+      });
+      
       const timeStr = formatTime(new Date());
       console.log("출근 성공");
       setLastAction({ type: '출근', time: timeStr });
@@ -52,17 +56,26 @@ export default function WorkerScreen() {
       
     } catch (err) {
       console.log("출근 오류:", err);
-      Alert.alert("❌ 오류", "서버 연결에 실패했습니다.");
+      const message = err.response?.data?.message || "서버 연결에 실패했습니다.";
+      Alert.alert("❌ 오류", message);
     }
   };
 
-  // --- [기존 로직 통합] 퇴근 ---
+  // 퇴근
   const handleCheckOut = async () => {
     try {
-      // 1. 서버로 데이터 전송
-      await axios.post(`${SERVER_URL}/api/attendance/check_out`, { userId: 1 });
+      // AsyncStorage에서 userId 가져오기
+      const userId = await AsyncStorage.getItem('userId');
+
+      if (!userId) {
+        Alert.alert("오류", "로그인 정보가 없습니다. 다시 로그인해주세요.");
+        return;
+      }
+
+      await axios.post(`${SERVER_URL}/api/attendance/check_out`, { 
+        userId: userId // 저장된 userId 사용
+      });
       
-      // 2. 성공 시 UI 업데이트 및 알림
       const timeStr = formatTime(new Date());
       console.log("퇴근 성공");
       setLastAction({ type: '퇴근', time: timeStr });
@@ -70,13 +83,13 @@ export default function WorkerScreen() {
       
     } catch (err) {
       console.log("퇴근 오류:", err);
-      Alert.alert("❌ 오류", "서버 연결에 실패했습니다.");
+      const message = err.response?.data?.message || "서버 연결에 실패했습니다.";
+      Alert.alert("❌ 오류", message);
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* 헤더 */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
           <ChevronLeft color="#333" size={24} />
@@ -85,7 +98,6 @@ export default function WorkerScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* 디지털 시계 영역 */}
         <View style={styles.clockSection}>
           <View style={styles.clockCircle}>
             <Clock color="white" size={64} />
@@ -94,9 +106,7 @@ export default function WorkerScreen() {
           <Text style={styles.clockTime}>{formatTime(currentTime)}</Text>
         </View>
 
-        {/* 버튼 영역 */}
         <View style={styles.buttonContainer}>
-          {/* 출근 버튼 */}
           <TouchableOpacity 
             style={[styles.actionButton, styles.checkInButton]}
             activeOpacity={0.9}
@@ -106,7 +116,6 @@ export default function WorkerScreen() {
             <Text style={styles.checkInText}>출근하기</Text>
           </TouchableOpacity>
 
-          {/* 퇴근 버튼 */}
           <TouchableOpacity 
             style={[styles.actionButton, styles.checkOutButton]}
             activeOpacity={0.9}
@@ -117,7 +126,6 @@ export default function WorkerScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* 상태 패널 */}
         <View style={styles.statusCard}>
           <Text style={styles.statusTitle}>최근 기록</Text>
           <View style={styles.statusRow}>
