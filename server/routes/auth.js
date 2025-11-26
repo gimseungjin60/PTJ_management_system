@@ -20,7 +20,7 @@ router.post('/login', async (req, res) => {
     
     try {
         // 1. 사용자 조회 (user_id 컬럼 기준)
-        const sql = 'SELECT id, user_id, name, role, hourly_wage, password FROM Users WHERE user_id = ?';
+        const sql = 'SELECT id, user_id, name, role, hourly_wage, password FROM users WHERE user_id = ?';
         const users = await db.executeQuery(sql, [userId]);
         
         if (users.length === 0) {
