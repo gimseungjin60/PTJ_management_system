@@ -1,34 +1,40 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Alert } from 'react-native'; // Alert 추가
 import { useNavigation } from "@react-navigation/native";
-import { ChevronLeft, BarChart3, Users, Clock, Settings, AlertCircle } from 'lucide-react-native';
+import { 
+  ChevronLeft, 
+  BarChart3, 
+  Users, 
+  Clock, 
+  Settings, 
+  AlertCircle, 
+  Calendar // 👈 이걸 꼭 추가해야 합니다!
+} from 'lucide-react-native';
+import { socket } from '../socket'; // ✅ [추가]
+
 
 export default function ManagerHomeScreen() {
   const navigation = useNavigation();
 
   // 로그아웃 핸들러 함수
   const handleLogout = () => {
-    Alert.alert(
-      "로그아웃", // 제목
-      "정말 로그아웃 하시겠습니까?", // 내용
-      [
-        {
-          text: "취소",
-          style: "cancel"
-        },
-        { 
-          text: "확인", 
-          onPress: () => {
-            // 확인 누르면 첫 화면(RoleSelect)으로 이동하면서 스택 초기화
-            // (로그인 화면이 있다면 Login으로 이동)
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'Login' }], 
-            });
-          }
+    Alert.alert("로그아웃", "정말 로그아웃 하시겠습니까?", [
+      { text: "취소", style: "cancel" },
+      { 
+        text: "확인", 
+        onPress: () => {
+          // ▼▼▼ [추가] 로그아웃 시 소켓 끊기 ▼▼▼
+          socket.disconnect();
+          console.log("🔴 소켓 연결 해제");
+          // ▲▲▲
+
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Login' }], 
+          });
         }
-      ]
-    );
+      }
+    ]);
   };
 
   return (
@@ -92,6 +98,20 @@ export default function ManagerHomeScreen() {
             </View>
             <Text style={styles.cardTitleBlack}>공지사항 관리</Text>
             <Text style={styles.cardSubtitleGray}>공지 작성 및 조회</Text>
+          </TouchableOpacity>
+
+          {/* 직원 출퇴근 설정 */}
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => navigation.navigate('ManagerSchedule')} 
+            style={[styles.actionCard, styles.cardWhite]}
+          >
+            <View style={styles.cardHeader}>
+              <View style={styles.iconCircleGray}><Calendar color="#3498DB" size={24} /></View>
+              <Text style={styles.emojiIcon}>🗓️</Text>
+            </View>
+            <Text style={styles.cardTitleBlack}>근무표 관리</Text>
+            <Text style={styles.cardSubtitleGray}>직원 일정 배정하기</Text>
           </TouchableOpacity>
 
           {/* 출퇴근 기록 */}

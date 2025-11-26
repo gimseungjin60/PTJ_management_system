@@ -8,6 +8,7 @@ import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import { User, Lock } from 'lucide-react-native';
 import { SERVER_URL } from '../config'; // config.js에서 서버 주소 가져오기
+import { socket } from '../socket'; // 위에서 만든 socket 가져오기
 
 export default function LoginScreen() {
   const navigation = useNavigation();
@@ -44,13 +45,24 @@ export default function LoginScreen() {
         // 만약 user.id가 없다면 일단 user.userId라도 저장
         await AsyncStorage.setItem('userId', user.userId);
       }
+
+      // 2. [추가됨] 출근 기준 시간 저장
+      // 값이 없을 수도 있으니 체크하고 저장합니다.
+      if (user.workStartTime) {
+        await AsyncStorage.setItem('workStartTime', user.workStartTime);
+      } else {
+        await AsyncStorage.removeItem('workStartTime'); // 없으면 기존 값 삭제
+      }
       
       // 토큰도 저장해두면 나중에 쓸 수 있습니다.
       if(token) {
         await AsyncStorage.setItem('userToken', token);
       }
       // ▲▲▲ [추가 완료] ▲▲▲
-
+      if (!socket.connected) {
+        socket.connect();
+        console.log("🔵 소켓 연결 시도...");
+      }
       // 2. 역할에 따라 화면 이동
       if (user.role === 'manager') {
         navigation.replace('ManagerHome');

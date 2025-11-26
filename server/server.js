@@ -8,6 +8,7 @@ const authRouter = require('./routes/auth');
 const attendanceRouter = require('./routes/attendance');
 const noticesRouter = require('./routes/notices');
 const managerRouter = require('./routes/manager'); 
+const scheduleRouter = require('./routes/schedule');
 
 const app = express();
 const server = http.createServer(app);
@@ -33,6 +34,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/attendance', attendanceRouter);
 app.use('/api/notices', noticesRouter);
 app.use('/api/manager', managerRouter);
+app.use('/api/schedule', scheduleRouter); // 라우터 등록
 
 // 기본 라우트 (서버 작동 확인용)
 app.get('/', (req, res) => {
