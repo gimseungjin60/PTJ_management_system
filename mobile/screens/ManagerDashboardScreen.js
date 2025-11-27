@@ -1,26 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  StyleSheet, 
-  SafeAreaView, 
-  ScrollView 
+  View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView 
 } from 'react-native';
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
-
 import { ChevronLeft, Activity, TrendingUp, AlertCircle, RefreshCw } from 'lucide-react-native';
-import { SERVER_URL } from '../config';
-
 import DateTimePicker from '@react-native-community/datetimepicker';
-import io from 'socket.io-client';
+
+import { SERVER_URL } from '../config';
+import { socket } from '../socket'; // ✅ [추가됨] 우리가 만든 소켓 가져오기
 
 export default function ManagerDashboardScreen() {
   const navigation = useNavigation();
 
-  // 소켓 연결
-  const socket = io(SERVER_URL);
 
   // 시간 설정 관련 상태
   const [selectedUser, setSelectedUser] = useState(null);
@@ -30,6 +22,8 @@ export default function ManagerDashboardScreen() {
   const [stats, setStats] = useState({ todayCheckIn: 0, working: 0, late: 0, totalWorkers: 0 });
   const [employeeStatus, setEmployeeStatus] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  
 
   // 🔥 대시보드 데이터 불러오기
   const fetchDashboardData = async () => {
@@ -84,13 +78,14 @@ export default function ManagerDashboardScreen() {
         workStartTime: formatted,
       });
 
-      // 소켓으로 실시간 전달
-      socket.emit("updateWorkStartTime", {
-        userId: selectedUser.id,
-        workStartTime: formatted,
-      });
+      // ✅ [확인] socket이 연결된 상태인지 확인하고 emit
+      if (socket.connected) {
+        socket.emit("updateWorkStartTime", {
+          userId: selectedUser.id,
+          workStartTime: formatted,
+        });
+      }
 
-      // 즉시 대시보드 갱신
       fetchDashboardData();
     } catch (error) {
       console.log("시간 업데이트 오류:", error);
