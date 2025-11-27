@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 
 
-export const socket = io("http://172.20.10.5:5000", {
+export const socket = io("http://175.116.147.194:5000", {
   transports: ["websocket"],
 });
