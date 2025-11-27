@@ -14,6 +14,8 @@ import EmployeeListScreen from "../screens/EmployeeListScreen";
 import NoticeListScreen from "../screens/NoticeListScreen"; 
 import NoticeWriteScreen from "../screens/NoticeWriteScreen";
 import LoginScreen from "../screens/LoginScreen";
+import ScheduleScreen from "../screens/ScheduleScreen";
+import ManagerScheduleScreen from "../screens/ManagerScheduleScreen";
 
 // ⚠️ 여기서 NavigationContainer import는 지웁니다.
 // import { NavigationContainer } from "@react-navigation/native"; 
@@ -58,6 +60,12 @@ export default function StackNavigator() {
       {/* 👇 공지사항 화면 등록 */}
       <Stack.Screen name="NoticeList" component={NoticeListScreen} />
       <Stack.Screen name="NoticeWrite" component={NoticeWriteScreen} />
+
+      {/* 👇 날짜 별 출근 일 */}
+      <Stack.Screen name="Schedule" component={ScheduleScreen} />
+
+      {/* 👇 [사장] 직원 출퇴근 시간 설정 */}
+      <Stack.Screen name="ManagerSchedule" component={ManagerScheduleScreen} />
 
     </Stack.Navigator>
     // ⚠️ </NavigationContainer> 태그 삭제!

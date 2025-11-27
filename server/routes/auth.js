@@ -20,7 +20,7 @@ router.post('/login', async (req, res) => {
     
     try {
         // 1. 사용자 조회 (user_id 컬럼 기준)
-        const sql = 'SELECT id, user_id, name, role, hourly_wage, password FROM users WHERE user_id = ?';
+        const sql = 'SELECT id, user_id, name, role, hourly_wage, password, work_start_time FROM users WHERE user_id = ?';
         const users = await db.executeQuery(sql, [userId]);
         
         if (users.length === 0) {
@@ -44,11 +44,12 @@ router.post('/login', async (req, res) => {
             message: '로그인 성공',
             token: token,
             user: {
-                id: user.id,         // ★ 이 숫자 ID를 출퇴근에 써야 함
+                id: user.id,
                 userId: user.user_id,
                 name: user.name,
                 role: user.role,
-                hourlyWage: user.hourly_wage 
+                hourlyWage: user.hourly_wage,
+                workStartTime: user.work_start_time // ✅ [추가됨] 이 부분이 핵심!
             }
         });
         
