@@ -120,18 +120,55 @@ export default function ScheduleScreen() {
              <ActivityIndicator color="#F39C12" style={{marginTop: 10}} />
           ) : (
             <View style={styles.salaryInfoContainer}>
+                {/* 기본급 */}
                 <View style={styles.salaryRow}>
-                    <Text style={styles.salaryLabel}>총 근무 시간</Text>
-                    <Text style={styles.salaryValue}>{salaryInfo?.totalHours || 0} 시간</Text>
-                </View>
-                <View style={styles.divider} />
-                <View style={styles.salaryRow}>
-                    <Text style={styles.salaryLabel}>예상 수령액</Text>
-                    <Text style={styles.salaryTotal}>
-                        {salaryInfo?.estimatedSalary?.toLocaleString() || 0} 원
+                    <Text style={styles.salaryLabel}>기본 급여 ({salaryInfo?.totalHours}h)</Text>
+                    <Text style={styles.salaryValue}>
+                        {salaryInfo?.baseSalary?.toLocaleString()} 원
                     </Text>
                 </View>
-                <Text style={styles.helperText}>* 시급 {salaryInfo?.hourlyWage?.toLocaleString()}원 기준</Text>
+
+                {/* 주휴수당 */}
+                {salaryInfo?.totalHolidayPay > 0 && (
+                    <View style={styles.salaryRow}>
+                        <Text style={[styles.salaryLabel, {color: '#2ECC71'}]}>+ 주휴수당</Text>
+                        <Text style={[styles.salaryValue, {color: '#2ECC71'}]}>
+                            {salaryInfo?.totalHolidayPay?.toLocaleString()} 원
+                        </Text>
+                    </View>
+                )}
+
+                {/* 🔥 [추가] 야간수당 */}
+                {salaryInfo?.totalNightPay > 0 && (
+                    <View style={styles.salaryRow}>
+                        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                            <Text style={[styles.salaryLabel, {color: '#9B59B6'}]}>+ 야간수당</Text>
+                            <Text style={{fontSize: 10, color: '#9B59B6', marginLeft: 4}}>
+                                ({salaryInfo?.totalNightHours}h × 0.5)
+                            </Text>
+                        </View>
+                        <Text style={[styles.salaryValue, {color: '#9B59B6'}]}>
+                            {salaryInfo?.totalNightPay?.toLocaleString()} 원
+                        </Text>
+                    </View>
+                )}
+
+                <View style={styles.divider} />
+
+                {/* 최종 합계 */}
+                <View style={styles.salaryRow}>
+                    <Text style={styles.salaryLabel}>총 예상 수령액</Text>
+                    <Text style={styles.salaryTotal}>
+                        {salaryInfo?.finalSalary?.toLocaleString() || 0} 원
+                    </Text>
+                </View>
+                
+                {/* 주휴수당 설명 */}
+                {salaryInfo?.totalHolidayPay > 0 ? (
+                    <Text style={styles.helperText}>* 주 15시간 이상 근무하여 주휴수당이 포함되었습니다.</Text>
+                ) : (
+                    <Text style={styles.helperText}>* 주 15시간 미만 근무 시 주휴수당은 제외됩니다.</Text>
+                )}
             </View>
           )}
         </View>

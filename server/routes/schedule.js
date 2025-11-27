@@ -96,19 +96,53 @@ router.get('/my-schedule', async (req, res) => {
 
 // [GET] /api/schedule/my-salary?year=2025&month=11
 // 이번 달 예상 급여 조회 (실제 근무 기록 기반)
+// [GET] /api/schedule/my-salary - 주휴수당 + 야간수당 포함 급여 계산
 router.get('/my-salary', async (req, res) => {
     const { userId, year, month } = req.query;
 
+    // 🔥 야간 근무 시간 계산 함수 (핵심 로직)
+    function getNightOverlap(start, end) {
+        let overlapMillis = 0;
+
+        // 비교 대상 1: "오늘 새벽" (00:00 ~ 06:00) - 예: 새벽 4시에 출근한 경우
+        const earlyMorningStart = new Date(start); 
+        earlyMorningStart.setHours(0, 0, 0, 0);
+        const earlyMorningEnd = new Date(start); 
+        earlyMorningEnd.setHours(6, 0, 0, 0);
+
+        // 비교 대상 2: "오늘 밤 ~ 내일 새벽" (22:00 ~ 06:00) - 예: 밤 10시 넘어 퇴근한 경우
+        const nightStart = new Date(start); 
+        nightStart.setHours(22, 0, 0, 0);
+        const nightEnd = new Date(start); 
+        nightEnd.setDate(nightEnd.getDate() + 1); // 다음날
+        nightEnd.setHours(6, 0, 0, 0);
+
+        const ranges = [
+            { s: earlyMorningStart, e: earlyMorningEnd },
+            { s: nightStart, e: nightEnd }
+        ];
+
+        for (const range of ranges) {
+            // 교집합(겹치는 시간) 구하기 로직
+            const maxStart = new Date(Math.max(start, range.s));
+            const minEnd = new Date(Math.min(end, range.e));
+
+            if (maxStart < minEnd) {
+                overlapMillis += (minEnd - maxStart);
+            }
+        }
+
+        return overlapMillis / (1000 * 60 * 60); // 시간 단위로 변환
+    }
+
     try {
-        // 1. 시급 가져오기
+        // 1. 시급 조회
         const userSql = "SELECT hourly_wage FROM users WHERE id = ?";
         const [user] = await db.executeQuery(userSql, [userId]);
-        
         if (!user) return res.status(404).json({ message: '사용자 없음' });
-
         const hourlyWage = user.hourly_wage;
 
-        // 2. 이번 달 근무 기록 가져오기 (attendance 테이블)
+        // 2. 근무 기록 조회
         const attendSql = `
             SELECT check_in_time, check_out_time 
             FROM attendance 
@@ -116,27 +150,61 @@ router.get('/my-salary', async (req, res) => {
             AND MONTH(check_in_time) = ? 
             AND YEAR(check_in_time) = ?
             AND check_out_time IS NOT NULL
+            ORDER BY check_in_time ASC
         `;
         const records = await db.executeQuery(attendSql, [userId, month, year]);
 
-        // 3. 총 근무 시간 계산 (밀리초 -> 시간)
-        let totalHours = 0;
+        // 3. 계산 시작
+        const weeklyHours = {}; // 주휴수당용 주별 시간 합계
+        let totalMonthHours = 0; // 총 근무 시간
+        let totalNightHours = 0; // 🔥 총 야간 근무 시간
+
         records.forEach(record => {
             const start = new Date(record.check_in_time);
             const end = new Date(record.check_out_time);
-            const diff = (end - start) / (1000 * 60 * 60); // 시간 단위 변환
-            totalHours += diff;
+            const workHours = (end - start) / (1000 * 60 * 60);
+
+            // 기본 시간 합산
+            totalMonthHours += workHours;
+
+            // 🔥 야간 시간 합산
+            const nightHours = getNightOverlap(start, end);
+            totalNightHours += nightHours;
+
+            // 주휴수당용 주차별 합산
+            const date = start.getDate();
+            const weekNum = Math.ceil(date / 7);
+            if (!weeklyHours[weekNum]) weeklyHours[weekNum] = 0;
+            weeklyHours[weekNum] += workHours;
         });
 
-        // 4. 급여 계산 (소수점 버림)
-        const estimatedSalary = Math.floor(totalHours * hourlyWage);
+        // 4. 주휴수당 계산
+        let totalHolidayPay = 0;
+        for (const [week, hours] of Object.entries(weeklyHours)) {
+            if (hours >= 15) {
+                const calcHours = hours > 40 ? 40 : hours;
+                totalHolidayPay += (calcHours / 40) * 8 * hourlyWage;
+            }
+        }
+
+        // 5. 🔥 야간수당 계산 (야간시간 * 시급 * 0.5)
+        // 1.5배가 아니라 0.5배인 이유: 기본 1.0배는 이미 baseSalary(총 근무시간)에 포함되어 있기 때문
+        const totalNightPay = totalNightHours * hourlyWage * 0.5;
+
+        // 6. 최종 급여
+        const baseSalary = Math.floor(totalMonthHours * hourlyWage);
+        const finalSalary = Math.floor(baseSalary + totalHolidayPay + totalNightPay);
 
         res.status(200).json({
             year,
             month,
-            totalHours: totalHours.toFixed(1), // 소수점 1자리까지
             hourlyWage,
-            estimatedSalary
+            totalHours: totalMonthHours.toFixed(1),
+            baseSalary,
+            totalHolidayPay: Math.floor(totalHolidayPay),
+            totalNightPay: Math.floor(totalNightPay), // 🔥 응답에 추가
+            totalNightHours: totalNightHours.toFixed(1), // (선택) 몇 시간인지 표시용
+            finalSalary
         });
 
     } catch (error) {
