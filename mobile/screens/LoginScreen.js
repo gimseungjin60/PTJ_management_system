@@ -8,24 +8,8 @@ import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import { User, Lock } from 'lucide-react-native';
 
-// ▼▼▼ [1. 푸시 알림 관련 라이브러리 추가] ▼▼▼
-import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
-import Constants from 'expo-constants';
-// ▲▲▲
-
 import { SERVER_URL } from '../config'; 
 import { socket } from '../socket'; 
-
-// ▼▼▼ [2. 앱이 켜져있을 때 알림 처리 설정] ▼▼▼
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
-// ▲▲▲
 
 export default function LoginScreen() {
   const navigation = useNavigation();
@@ -34,56 +18,6 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // ▼▼▼ [3. 푸시 토큰 등록 함수 정의] ▼▼▼
-  async function registerForPushNotificationsAsync(userDbId) {
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF231F7C',
-      });
-    }
-
-    if (Device.isDevice) {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-      
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-      
-      if (finalStatus !== 'granted') {
-        // 알림 권한을 거부했을 경우 조용히 리턴하거나 알림창 띄우기
-        console.log('알림 권한이 없습니다.');
-        return;
-      }
-
-      // 1. 엑스포 토큰 발급
-      const token = (await Notifications.getExpoPushTokenAsync({
-        projectId: Constants.expoConfig?.extra?.eas?.projectId,
-      })).data;
-      
-      console.log("🔥 내 푸시 토큰:", token);
-
-      // 2. 서버로 토큰 전송 (DB 저장용)
-      try {
-        // userDbId는 DB의 Primary Key (숫자 ID)여야 정확합니다.
-        await axios.post(`${SERVER_URL}/save-token`, {
-          userId: userDbId, 
-          token: token // 서버 코드에서 req.body.token 으로 받음
-        });
-        console.log("✅ 서버에 토큰 저장 성공");
-      } catch (e) {
-        console.error("❌ 토큰 서버 전송 실패:", e);
-      }
-
-    } else {
-      console.log('에뮬레이터에서는 푸시 알림이 작동하지 않습니다.');
-    }
-  }
-  // ▲▲▲ [함수 정의 끝] ▲▲▲
 
   const handleLogin = async () => {
     if (!userId || !password) {
@@ -103,16 +37,15 @@ export default function LoginScreen() {
       const { token, user } = response.data;
       console.log("로그인 성공 정보 확인:", user); 
 
-      // 1. 숫자 ID (Primary Key)를 저장합니다.
-      let savedId = null;
       if (user.id) {
-        savedId = user.id;
-        await AsyncStorage.setItem('userId', String(user.id)); 
-        console.log("저장된 ID(PK):", user.id);
-      } else {
-        savedId = user.userId; // id가 없으면 userId라도 사용
-        await AsyncStorage.setItem('userId', user.userId);
+        await AsyncStorage.setItem('userId', String(user.id)); // ★ 핵심!
       }
+
+      // 🔥 [필수 추가] 역할(Role) 저장 (manager 또는 worker)
+      if (user.role) {
+        await AsyncStorage.setItem('userRole', user.role);
+      }
+
 
       // 2. 출근 기준 시간 저장
       if (user.workStartTime) {
@@ -126,12 +59,6 @@ export default function LoginScreen() {
         await AsyncStorage.setItem('userToken', token);
       }
 
-      // ▼▼▼ [4. 로그인 성공 시 푸시 토큰 등록 실행] ▼▼▼
-      // 여기서 위에서 만든 함수를 호출합니다.
-      if (savedId) {
-        await registerForPushNotificationsAsync(savedId);
-      }
-      // ▲▲▲
 
       if (!socket.connected) {
         socket.connect();

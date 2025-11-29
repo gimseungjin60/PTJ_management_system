@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
-import { Calendar } from 'react-native-calendars'; // 라이브러리 import
+import { Calendar, LocaleConfig } from 'react-native-calendars'; // 👈 LocaleConfig 추가!
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
 import { ChevronLeft, DollarSign, Calendar as CalendarIcon } from 'lucide-react-native';
 import { SERVER_URL } from '../config';
+
+
+LocaleConfig.locales['kr'] = {
+  monthNames: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+  monthNamesShort: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+  dayNames: ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'],
+  dayNamesShort: ['일', '월', '화', '수', '목', '금', '토'],
+  today: '오늘'
+};
+LocaleConfig.defaultLocale = 'kr';
 
 export default function ScheduleScreen() {
   const navigation = useNavigation();
@@ -56,6 +66,7 @@ export default function ScheduleScreen() {
   };
 
   // 캘린더 날짜 커스텀 렌더링 (날짜 아래에 시간 표시)
+  // 캘린더 날짜 커스텀 렌더링
   const renderDay = ({ date, state }) => {
     const schedule = schedules[date.dateString];
     
@@ -67,10 +78,20 @@ export default function ScheduleScreen() {
         <Text style={[styles.dayText, state === 'disabled' && styles.disabledText]}>
           {date.day}
         </Text>
-        {/* 일정이 있으면 시간 표시 */}
+        
+        {/* 🔥 [수정] 위아래 두 줄로 분리 */}
         {schedule && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{schedule.startTime}</Text>
+          <View style={{ width: '100%', alignItems: 'center', gap: 2 }}>
+            {/* 위: 출근 */}
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{schedule.startTime}</Text>
+            </View>
+            {/* 아래: 퇴근 */}
+            <View style={styles.badge}>
+              <Text style={[styles.badgeText, { color: '#E74C3C' }]}>
+                {schedule.endTime}
+              </Text>
+            </View>
           </View>
         )}
       </TouchableOpacity>
@@ -180,19 +201,42 @@ export default function ScheduleScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F7F7F7' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', padding: 24, backgroundColor: 'white' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', padding: 24, backgroundColor: 'white', elevation: 2 },
   headerTitle: { fontSize: 18, fontWeight: 'bold' },
   scrollContent: { padding: 24, gap: 20, paddingBottom: 50 },
   
-  // 캘린더 스타일
   calendarCard: { backgroundColor: 'white', borderRadius: 18, padding: 16, elevation: 3 },
-  dayContainer: { alignItems: 'center', justifyContent: 'flex-start', height: 45, width: 32 },
-  dayText: { fontSize: 16, color: '#333', marginBottom: 2 },
+  
+  // 🔥 [수정 1] 날짜 칸의 높이와 너비를 넉넉하게 늘림
+  dayContainer: { 
+    alignItems: 'center', 
+    justifyContent: 'flex-start', 
+    height: 55, // 기존 45 -> 55 (세로 공간 확보)
+    width: 48   // 기존 32 -> 48 (가로 공간 확보)
+  },
+  
+  dayText: { fontSize: 16, color: '#333', marginBottom: 4 },
   disabledText: { color: '#DDD' },
-  badge: { backgroundColor: '#E8F8F5', paddingHorizontal: 4, paddingVertical: 2, borderRadius: 4 },
-  badgeText: { fontSize: 9, color: '#2ECC71', fontWeight: 'bold' },
+  
+  // 🔥 [수정 2] 뱃지 스타일 개선
+  badge: { 
+    backgroundColor: '#E8F8F5', 
+    paddingHorizontal: 2, 
+    paddingVertical: 2, 
+    borderRadius: 4,
+    width: '100%', 
+    alignItems: 'center'
+  },
+  
+  // 🔥 [수정 3] 글자 크기 키움 (8 -> 10)
+  badgeText: { 
+    fontSize: 10, // 잘 보이게 키움
+    color: '#2ECC71', 
+    fontWeight: 'bold',
+    // numberOfLines={1}  <-- 이 속성은 렌더링 함수에 있으니 스타일엔 없어도 됩니다.
+  },
 
-  // 급여 카드 스타일
+  // ... (나머지 급여 카드 스타일은 기존과 동일) ...
   salaryCard: { backgroundColor: 'white', borderRadius: 18, padding: 20, elevation: 3 },
   cardTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
   cardTitle: { fontSize: 16, fontWeight: 'bold', color: '#555' },

@@ -31,9 +31,11 @@ export default function NoticeWriteScreen() {
         content
       });
 
-      Alert.alert("성공", "공지사항이 등록되었습니다.", [
+      /*Alert.alert("성공", "공지사항이 등록되었습니다.", [
         { text: "확인", onPress: () => navigation.goBack() } // 작성 후 목록으로 돌아감
-      ]);
+      ]);*/
+      console.log("등록 완료, 화면 이동");
+      navigation.goBack(); // 바로 목록으로 이동
     } catch (err) {
       console.log("공지 등록 실패:", err);
       Alert.alert("오류", "공지사항 등록에 실패했습니다.");

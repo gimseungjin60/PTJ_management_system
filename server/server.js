@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors'); // CORS 미들웨어 추가
+const db = require('./db/connection');
 //안녕하세요
 // 라우터 모듈 불러오기 (지금은 빈 파일이므로 나중에 채워 넣습니다)
 const authRouter = require('./routes/auth');
@@ -35,6 +36,7 @@ app.use('/api/attendance', attendanceRouter);
 app.use('/api/notices', noticesRouter);
 app.use('/api/manager', managerRouter);
 app.use('/api/schedule', scheduleRouter); // 라우터 등록
+
 
 // 기본 라우트 (서버 작동 확인용)
 app.get('/', (req, res) => {
