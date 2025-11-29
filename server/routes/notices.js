@@ -49,10 +49,28 @@ router.post('/', async (req, res) => {
             console.log("📢 전체 공지 알림 전송 완료");
         }
 
+
         res.status(201).json({ message: '공지사항이 등록되었습니다.' });
 
     } catch (error) {
         console.error("공지 등록 오류:", error);
+        res.status(500).json({ message: '서버 오류' });
+    }
+});
+
+// 3. [DELETE] /api/notices/:id - 공지사항 삭제
+router.delete('/:id', async (req, res) => {
+    const { id } = req.params;
+    
+    try {
+        // DB에서 삭제
+        const sql = "DELETE FROM announcements WHERE id = ?";
+        await db.executeQuery(sql, [id]);
+
+        res.status(200).json({ message: '공지사항이 삭제되었습니다.' });
+        console.log("📢 공지사항이 삭제되었습니다.");
+    } catch (error) {
+        console.error("공지 삭제 오류:", error);
         res.status(500).json({ message: '서버 오류' });
     }
 });
