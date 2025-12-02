@@ -114,7 +114,7 @@ export default function LoginScreen() {
               placeholder="비밀번호"
               value={password}
               onChangeText={setPassword}
-              secureTextEntry
+              secureTextEntry={false}
             />
           </View>
 

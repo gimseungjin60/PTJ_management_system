@@ -24,11 +24,11 @@ export default function ScheduleScreen() {
   const [loading, setLoading] = useState(false);
   
   const today = new Date();
-  const currentYear = today.getFullYear();
-  const currentMonth = today.getMonth() + 1;
+  const [viewYear, setViewYear] = useState(today.getFullYear());
+  const [viewMonth, setViewMonth] = useState(today.getMonth() + 1);
 
   useEffect(() => {
-    fetchData(currentYear, currentMonth);
+    fetchData(viewYear, viewMonth);
   }, []);
 
   const fetchData = async (year, month) => {
@@ -121,7 +121,11 @@ export default function ScheduleScreen() {
           
           <Calendar
             current={today.toISOString().split('T')[0]}
-            onMonthChange={(month) => fetchData(month.year, month.month)}
+            onMonthChange={(month) => {
+              setViewYear(month.year);   // 연도 저장
+              setViewMonth(month.month); // 월 저장
+              fetchData(month.year, month.month); // 데이터 요청
+            }}
             dayComponent={renderDay} // 커스텀 날짜 컴포넌트 사용
             theme={{
               todayTextColor: '#2ECC71',
@@ -134,7 +138,7 @@ export default function ScheduleScreen() {
         <View style={styles.salaryCard}>
           <View style={styles.cardTitleRow}>
             <DollarSign color="#F39C12" size={20} />
-            <Text style={styles.cardTitle}>{currentMonth}월 예상 급여</Text>
+            <Text style={styles.cardTitle}>{viewMonth}월 예상 급여</Text>
           </View>
           
           {loading ? (
@@ -203,7 +207,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F7F7F7' },
   header: { flexDirection: 'row', justifyContent: 'space-between', padding: 24, backgroundColor: 'white', elevation: 2 },
   headerTitle: { fontSize: 18, fontWeight: 'bold' },
-  scrollContent: { padding: 24, gap: 20, paddingBottom: 50 },
+  scrollContent: { padding: 24, gap: 20, paddingBottom: 100 },
   
   calendarCard: { backgroundColor: 'white', borderRadius: 18, padding: 16, elevation: 3 },
   

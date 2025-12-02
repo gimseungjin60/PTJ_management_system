@@ -138,7 +138,9 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', padding: 24, backgroundColor: 'white' },
   headerTitle: { fontSize: 18, fontWeight: 'bold' },
   iconButton: { padding: 4 },
-  scrollContent: { padding: 24 },
+  scrollContent: { 
+    padding: 24,
+    paddingBottom: 100},
   welcomeSection: { marginBottom: 32 },
   welcomeText: { fontSize: 24, fontWeight: 'bold', color: '#333' },
   welcomeSubText: { color: '#AAAAAA', fontSize: 16 },

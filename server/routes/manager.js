@@ -134,6 +134,26 @@ router.delete('/employees/:id', async (req, res) => {
         res.status(500).json({ message: '삭제 중 오류가 발생했습니다.' });
     }
 });
+
+// [PUT] /api/manager/employees/wage - 직원 시급 수정
+router.put('/employees/wage', async (req, res) => {
+    const { id, hourlyWage } = req.body;
+
+    if (!id || !hourlyWage) {
+        return res.status(400).json({ message: '필수 정보가 누락되었습니다.' });
+    }
+
+    try {
+        const sql = "UPDATE users SET hourly_wage = ? WHERE id = ?";
+        await db.executeQuery(sql, [hourlyWage, id]);
+
+        res.status(200).json({ message: '시급이 수정되었습니다.' });
+    } catch (error) {
+        console.error("시급 수정 오류:", error);
+        res.status(500).json({ message: '서버 오류' });
+    }
+});
+
     // 직원 기준 출근시간 설정
 router.put('/set-work-time', async (req, res) => {
     const { userId, workStartTime } = req.body;

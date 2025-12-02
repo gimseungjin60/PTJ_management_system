@@ -45,6 +45,24 @@ router.delete('/:id', async (req, res) => {
         res.status(500).json({ message: '서버 오류' });
     }
 });
+// [PUT] /api/schedule/:id - 일정 시간 수정
+router.put('/:id', async (req, res) => {
+    const { id } = req.params;
+    const { startTime, endTime } = req.body;
+
+    if (!startTime || !endTime) {
+        return res.status(400).json({ message: '시간 정보가 필요합니다.' });
+    }
+
+    try {
+        const sql = "UPDATE schedule SET start_time = ?, end_time = ? WHERE id = ?";
+        await db.executeQuery(sql, [startTime, endTime, id]);
+        res.status(200).json({ message: '일정이 수정되었습니다.' });
+    } catch (error) {
+        console.error("일정 수정 오류:", error);
+        res.status(500).json({ message: '서버 오류' });
+    }
+});
 
 // [GET] 날짜별 상세 일정 조회 (문자열 비교로 정확도 UP)
 router.get('/date/:date', async (req, res) => {
